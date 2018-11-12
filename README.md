@@ -1,4 +1,4 @@
-# My solutions from [Functional Programming in Scala](https://www.manning.com/books/functional-programming-in-scala).
+# Solutions from [Functional Programming in Scala](https://www.manning.com/books/functional-programming-in-scala)
   
 <table>
  <tbody>
