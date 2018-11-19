@@ -1,6 +1,6 @@
 import org.scalatest.FunSuite
 
-class Ch4 extends FunSuite {
+class Ch4_Handling_errors_without_exceptions extends FunSuite {
 
   object MyOption {
 
@@ -27,7 +27,7 @@ class Ch4 extends FunSuite {
       }
 
       def filter(f: A => Boolean): Option[A] = this match {
-        case Some(a) if (f(a)) => Some(a)
+        case Some(a) if f(a) => Some(a)
         case _ => None
       }
     }
@@ -38,11 +38,11 @@ class Ch4 extends FunSuite {
 
   }
 
-  //  import MyOption._
+  import MyOption._
 
   test("EXERCISE 4.2 variance") {
     def variance(xs: Seq[Double]): Option[Double] = {
-      
+
       def mean(xs: Seq[Double]): Option[Double] = if (xs.isEmpty) None else Some(xs.sum / xs.size)
 
       mean(xs).flatMap(m => mean(xs.map(x => math.pow(x - m, 2))))
@@ -57,6 +57,13 @@ class Ch4 extends FunSuite {
 
   test("EXERCISE 4.3 map2") {
     def map2[A, B, C](a: Option[A], b: Option[B])(f: (A, B) => C): Option[C] = a.flatMap(a1 => b.map(b1 => f(a1, b1)))
+
+    def f(a: Int, b: Int): Int = a + b
+
+    assert(map2(Some(1), Some(2))(f) == Some(3))
+    assert(map2(Some(1), None)(f) == None)
+    assert(map2(None, None)(f) == None)
+    assert(map2(None, Some(1))(f) == None)
   }
 
   test("EXERCISE 4.4 sequence") {
@@ -76,10 +83,6 @@ class Ch4 extends FunSuite {
 
   }
 
-  ignore("EXERCISE 4.5 traverse") {
-
-  }
-
   object MyEither {
 
     // EXERCISE 4.6
@@ -95,7 +98,7 @@ class Ch4 extends FunSuite {
       }
 
       def orElse[EE >: E, B >: A](b: => Either[EE, B]): Either[EE, B] = this match {
-        case Left(a) => b
+        case Left(_) => b
         case Right(a) => Right(a)
       }
 
@@ -163,19 +166,19 @@ class Ch4 extends FunSuite {
 
   test("EXERCISE 4.8 map2bis") {
     case class Person(name: Name, age: Age)
-    sealed case class Name(val value: String)
-    sealed case class Age(val value: Int)
+    sealed case class Name(value: String)
+    sealed case class Age(value: Int)
 
     def mkName(name: String): Either[String, Name] =
       if (name == "" || name == null) Left("Name is empty.")
-      else Right(new Name(name))
+      else Right(Name(name))
 
     def mkAge(age: Int): Either[String, Age] =
       if (age < 0) Left("Age is out of range.")
-      else Right(new Age(age))
+      else Right(Age(age))
 
     def mkPerson(name: String, age: Int): Either[List[String], Person] =
-      mkName(name).map2bis(mkAge(age))(Person(_, _))
+      mkName(name).map2bis(mkAge(age))(Person)
 
 
     assert(mkPerson("Bob", 10) == Right(Person(Name("Bob"), Age(10))))

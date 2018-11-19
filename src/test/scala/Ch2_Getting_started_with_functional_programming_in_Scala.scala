@@ -2,7 +2,7 @@ import org.scalatest.FunSuite
 
 import scala.annotation.tailrec
 
-class Ch2 extends FunSuite {
+class Ch2_Getting_started_with_functional_programming_in_Scala extends FunSuite {
 
   test("EXERCISE 2.1 fibonacci") {
 
@@ -47,7 +47,7 @@ class Ch2 extends FunSuite {
   }
 
   test("EXERCISE 2.3 curry") {
-    def curry[A, B, C](f: (A, B) => C): A => (B => C) = a => b => f(a, b)
+    def curry[A, B, C](f: (A, B) => C): A => B => C = a => b => f(a, b)
 
     assert(curry((a: Int, b: Double) => a.toString + " " + b.toString)(1)(1.2) == "1 1.2")
   }

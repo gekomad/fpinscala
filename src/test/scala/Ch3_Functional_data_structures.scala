@@ -2,7 +2,7 @@ import org.scalatest.FunSuite
 
 import scala.annotation.tailrec
 
-class Ch3 extends FunSuite {
+class Ch3_Functional_data_structures extends FunSuite {
 
   object MyList {
 
@@ -218,7 +218,7 @@ class Ch3 extends FunSuite {
 
   }
 
-  test("EXERCISE 3.21 filter with flatmap") {
+  test("EXERCISE 3.21 filter with flatMap") {
 
     assert(flatMap(Cons(1, Cons(2, Cons(3, Nil))))(a => if (a > 1) Cons(a, Nil) else Nil) == Cons(2, Cons(3, Nil)))
 
