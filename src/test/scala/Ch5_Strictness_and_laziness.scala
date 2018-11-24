@@ -1,8 +1,11 @@
+package ch5
+
 import org.scalatest.FunSuite
 
 import scala.annotation.tailrec
 
-class Ch5_Strictness_and_laziness extends FunSuite {
+
+object MyStream {
 
   object Stream {
     def cons[A](hd: => A, tl: => Stream[A]): Stream[A] = {
@@ -66,6 +69,25 @@ class Ch5_Strictness_and_laziness extends FunSuite {
       case _ => false
     }
 
+    def find(p: A => Boolean): Option[A] = this match {
+      case Empty => None
+      case Cons(h, t) => if (p(h())) Some(h()) else t().find(p)
+    }
+
+
+    def zipWith[B, C](s2: Stream[B])(f: (A, B) => C): Stream[C] =
+      unfold((this, s2)) {
+        case (Cons(h1, t1), Cons(h2, t2)) =>
+          Some((f(h1(), h2()), (t1(), t2())))
+        case _ => None
+      }
+
+    def zip[B](s2: Stream[B]): Stream[(A, B)] =
+      zipWith(s2)((_, _))
+
+    def map[B](f: A => B): Stream[B] =
+      foldRight(empty[B])((h, t) => cons(f(h), t))
+
   }
 
   case object Empty extends Stream[Nothing]
@@ -82,6 +104,16 @@ class Ch5_Strictness_and_laziness extends FunSuite {
       val (nextValue, nextState) = x
       cons(nextValue, unfold(nextState)(f))
   }
+
+  def from(n: Int): Stream[Int] = cons(n, from(n + 1))
+
+}
+
+import MyStream._
+import MyStream.Stream._
+
+class Ch5_Strictness_and_laziness extends FunSuite {
+
 
   test("EXERCISE 5.1 Stream to List") {
     assert(cons(1, Empty).toList == List(1))
@@ -102,6 +134,11 @@ class Ch5_Strictness_and_laziness extends FunSuite {
   test("EXERCISE 5.4 forAll") {
     assert(cons(1, cons(2, Empty)).forAll((a: Int) => a < 3))
     assert(!cons(1, cons(2, Empty)).forAll((a: Int) => a < 2))
+  }
+
+  test("Find") {
+    assert(cons(1, cons(2, Empty)).find((a: Int) => a < 2).contains(1))
+    assert(cons(1, cons(2, Empty)).find((a: Int) => a > 12).isEmpty)
   }
 
   test("EXERCISE 5.5 takeWhile using foldRight") {
@@ -140,7 +177,6 @@ class Ch5_Strictness_and_laziness extends FunSuite {
   }
 
   test("EXERCISE 5.9 infinite stream") {
-    def from(n: Int): Stream[Int] = cons(n, from(n + 1))
 
     assert(from(1).take(3).toList == List(1, 2, 3))
   }
@@ -203,7 +239,7 @@ class Ch5_Strictness_and_laziness extends FunSuite {
   }
 
   /**
-    * This doesn't work with standard scala Stream because foldRight is not by name
+    * This doesn't work with standard scala Stream because foldRight is not 'by name'
     *
     * Scala.Stream:  def foldRight[B](z: B)   (f: (A,    B) => B): B
     * Stream:        def foldRight[B](z: => B)(f: (A, => B) => B): B
@@ -214,12 +250,12 @@ class Ch5_Strictness_and_laziness extends FunSuite {
 
     lazy val infiniteStreamStandardScala: scala.Stream[String] = "hi" #:: infiniteStreamStandardScala
 
-    assert(infiniteStream.foldRight(Empty: Stream[String])((a, b) => if (a != Empty) cons(a, b) else Empty).take(1).toList == List("hi"))
-    assert(infiniteStream.foldRight(Empty: Stream[String])((a, b) => if (a != Empty) cons(a, b) else Empty).take(2).toList == List("hi", "hi"))
-    assert(infiniteStream.foldRight(Empty: Stream[String])((a, b) => if (a != Empty) cons(a, b) else Empty).take(3).toList == List("hi", "hi", "hi"))
+    assert(infiniteStream.foldRight(Empty: Stream[String])(cons(_, _)).take(1).toList == List("hi"))
+    assert(infiniteStream.foldRight(Empty: Stream[String])(cons(_, _)).take(2).toList == List("hi", "hi"))
+    assert(infiniteStream.foldRight(Empty: Stream[String])(cons(_, _)).take(3).toList == List("hi", "hi", "hi"))
 
     assertThrows[java.lang.StackOverflowError] {
-      infiniteStreamStandardScala.foldRight(scala.Stream.empty[String])((a, b) => if (a != scala.Stream.empty) a #:: b else scala.Stream.empty).take(3).toList
+      infiniteStreamStandardScala.foldRight(scala.Stream.empty[String])(_ #:: _).take(3).toList
     }
 
   }

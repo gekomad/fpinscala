@@ -1,29 +1,35 @@
+package ch6
+
 import org.scalatest.FunSuite
 
-class Ch6_Purely_functional_state extends FunSuite {
+trait RNG {
+  def nextInt: (Int, RNG)
+}
 
-  trait RNG {
-    def nextInt: (Int, RNG)
+case class SimpleRNG(seed: Long) extends RNG {
+
+  def nextInt: (Int, RNG) = {
+    val newSeed: Long = (seed * 0x5DEECE66DL + 0xBL) & 0xFFFFFFFFFFFFL
+    val nextRNG: SimpleRNG = SimpleRNG(newSeed)
+    val n: Int = (newSeed >>> 16).toInt
+    (n, nextRNG)
   }
 
-  case class SimpleRNG(seed: Long) extends RNG {
+}
 
-    def nextInt: (Int, RNG) = {
-      val newSeed: Long = (seed * 0x5DEECE66DL + 0xBL) & 0xFFFFFFFFFFFFL
-      val nextRNG: SimpleRNG = SimpleRNG(newSeed)
-      val n: Int = (newSeed >>> 16).toInt
-      (n, nextRNG)
-    }
-
-  }
-
-  import SimpleRNG._
-
+object SimpleRNG {
   // EXERCISE 6.1 nonNegativeInt
   def nonNegativeInt(rng: RNG): (Int, RNG) = {
     val (i, r) = rng.nextInt
     (if (i < 0) i + Int.MaxValue else i, r)
   }
+}
+
+
+//noinspection NameBooleanParameters,NameBooleanParameters,NameBooleanParameters,NameBooleanParameters,NameBooleanParameters,NameBooleanParameters,NameBooleanParameters,NameBooleanParameters,NameBooleanParameters,NameBooleanParameters,NameBooleanParameters,NameBooleanParameters,NameBooleanParameters,NameBooleanParameters,NameBooleanParameters,NameBooleanParameters,NameBooleanParameters,NameBooleanParameters,NameBooleanParameters,NameBooleanParameters,NameBooleanParameters,NameBooleanParameters
+class Ch6_Purely_functional_state extends FunSuite {
+
+  import SimpleRNG._
 
   // EXERCISE 6.2 generate Double
 
@@ -182,6 +188,7 @@ class Ch6_Purely_functional_state extends FunSuite {
 
     def simulateMachine(inputs: List[Input]): State[Machine, (Int, Int)] = { machine =>
 
+      //noinspection NameBooleanParameters
       def go(input: Input): State2[Machine] = machine =>
         (input, machine) match {
           case (Coin, Machine(true, candies, coins)) if candies > 0 =>
