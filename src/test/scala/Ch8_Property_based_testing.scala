@@ -1,99 +1,100 @@
+package ch8
 import ch6.{RNG, SimpleRNG}
 import org.scalatest.FunSuite
 import ch7._
 import ch5._
 import MyStream._
 
+object Prop {
+  type FailedCase = String
+  type SuccessCount = Int
+
+  def unit[A](a: => A): Gen[A] = Gen(State.unit(a))
+
+  def choose(start: Int, stopExclusive: Int): Gen[Int] =
+    Gen(State(SimpleRNG.nonNegativeInt).map(n => start + n % (stopExclusive - start)))
+
+  def union[A](g1: Gen[A], g2: Gen[A]): Gen[A] = boolean.flatMap(if (_) g1 else g2)
+
+  def listOfN[A](n: Int, g: Gen[A]): Gen[List[A]] = Gen(State.sequence(List.fill(n)(g.sample)))
+
+  def boolean: Gen[Boolean] = {
+    val c: State[RNG, Boolean] = State(_.nextInt match { case (i, r) => (i % 2 == 0, r) })
+    Gen(c)
+  }
+
+  type TestCases = Int
+
+  case class Prop(run: (TestCases, RNG) => Result) {
+    def &&(p: Prop) = Prop {
+      (max, n) =>
+        run(max, n) match {
+          case Passed => p.run(max, n)
+          case x => x
+        }
+
+    }
+
+    def ||(p: Prop) = Prop {
+      (max, n) =>
+        run(max, n) match {
+          // In case of failure, run the other prop.
+          case Falsified(_, _) =>
+            p.run(max, n)
+          case
+            x => x
+        }
+    }
+
+  }
+
+  sealed trait Result {
+    def isFalsified: Boolean
+  }
+
+  case object Passed extends Result {
+    def isFalsified: Boolean = false
+  }
+
+  case class Falsified(failure: FailedCase, successes: SuccessCount) extends Result {
+    def isFalsified = true
+  }
+
+  def forAll[A](as: Gen[A])(f: A => Boolean): Prop = {
+    Prop {
+      (n, rng) =>
+        randomStream(as)(rng).zip(from(0)).take(n).map {
+          case (a, i) => try {
+            if (f(a)) Passed else Falsified(a.toString, i)
+          } catch {
+            case e: Exception =>
+              Falsified(buildMsg(a, e), i)
+          }
+        }.find(_.isFalsified).getOrElse(Passed)
+    }
+  }
+
+  def randomStream[A](g: Gen[A])(rng: RNG): Stream[A] =
+    unfold(rng)(rng => Some(g.sample.run(rng)))
+
+  def buildMsg[A](s: A, e: Exception): String =
+    s"test case: $s\n" +
+      s"generated an exception: ${e.getMessage}\n" +
+      s"stack trace:\n ${e.getStackTrace.mkString("\n")}"
+}
+
+import Prop._
+import ch6._
+
+case class Gen[A](sample: State[RNG, A]) {
+
+  def flatMap[B](f: A => Gen[B]): Gen[B] = Gen(sample.flatMap(f(_).sample))
+
+  def listOfN(size: Gen[Int]): Gen[List[A]] = size.flatMap(n => Prop.listOfN(n, this))
+
+}
+
 class Ch8_Property_based_testing extends FunSuite {
-
-  object Prop {
-    type FailedCase = String
-    type SuccessCount = Int
-
-    def unit[A](a: => A): Gen[A] = Gen(State.unit(a))
-
-    def choose(start: Int, stopExclusive: Int): Gen[Int] =
-      Gen(State(SimpleRNG.nonNegativeInt).map(n => start + n % (stopExclusive - start)))
-
-    def union[A](g1: Gen[A], g2: Gen[A]): Gen[A] = boolean.flatMap(if (_) g1 else g2)
-
-    def listOfN[A](n: Int, g: Gen[A]): Gen[List[A]] = Gen(State.sequence(List.fill(n)(g.sample)))
-
-    def boolean: Gen[Boolean] = {
-      val c: State[RNG, Boolean] = State(_.nextInt match { case (i, r) => (i % 2 == 0, r) })
-      Gen(c)
-    }
-
-    type TestCases = Int
-
-    case class Prop(run: (TestCases, RNG) => Result) {
-      def &&(p: Prop) = Prop {
-        (max, n) =>
-          run(max, n) match {
-            case Passed => p.run(max, n)
-            case x => x
-          }
-
-      }
-
-      def ||(p: Prop) = Prop {
-        (max, n) =>
-          run(max, n) match {
-            // In case of failure, run the other prop.
-            case Falsified(_, _) =>
-              p.run(max, n)
-            case
-              x => x
-          }
-      }
-
-    }
-
-    sealed trait Result {
-      def isFalsified: Boolean
-    }
-
-    case object Passed extends Result {
-      def isFalsified: Boolean = false
-    }
-
-    case class Falsified(failure: FailedCase, successes: SuccessCount) extends Result {
-      def isFalsified = true
-    }
-
-    def forAll[A](as: Gen[A])(f: A => Boolean): Prop = {
-      Prop {
-        (n, rng) =>
-          randomStream(as)(rng).zip(from(0)).take(n).map {
-            case (a, i) => try {
-              if (f(a)) Passed else Falsified(a.toString, i)
-            } catch {
-              case e: Exception =>
-                Falsified(buildMsg(a, e), i)
-            }
-          }.find(_.isFalsified).getOrElse(Passed)
-      }
-    }
-
-    def randomStream[A](g: Gen[A])(rng: RNG): Stream[A] =
-      unfold(rng)(rng => Some(g.sample.run(rng)))
-
-    def buildMsg[A](s: A, e: Exception): String =
-      s"test case: $s\n" +
-        s"generated an exception: ${e.getMessage}\n" +
-        s"stack trace:\n ${e.getStackTrace.mkString("\n")}"
-  }
-
-  import Prop._
-  import ch6._
-
-  case class Gen[A](sample: State[RNG, A]) {
-
-    def flatMap[B](f: A => Gen[B]): Gen[B] = Gen(sample.flatMap(f(_).sample))
-
-    def listOfN(size: Gen[Int]): Gen[List[A]] = size.flatMap(n => Prop.listOfN(n, this))
-
-  }
 
   import Prop._
 
@@ -190,7 +191,7 @@ class Ch8_Property_based_testing extends FunSuite {
 
       val combinedProp: Prop = forAll(nine)(_ < 0) || forAll(nine)(_ >= 110)
 
-      val result: Prop.Result = combinedProp.run(100, SimpleRNG(4))
+      val result: Result = combinedProp.run(100, SimpleRNG(4))
       assert(result == Falsified("9", 0))
     }
   }
