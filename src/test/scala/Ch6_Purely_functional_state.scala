@@ -25,8 +25,6 @@ object SimpleRNG {
   }
 }
 
-
-//noinspection NameBooleanParameters,NameBooleanParameters,NameBooleanParameters,NameBooleanParameters,NameBooleanParameters,NameBooleanParameters,NameBooleanParameters,NameBooleanParameters,NameBooleanParameters,NameBooleanParameters,NameBooleanParameters,NameBooleanParameters,NameBooleanParameters,NameBooleanParameters,NameBooleanParameters,NameBooleanParameters,NameBooleanParameters,NameBooleanParameters,NameBooleanParameters,NameBooleanParameters,NameBooleanParameters,NameBooleanParameters
 class Ch6_Purely_functional_state extends FunSuite {
 
   import SimpleRNG._
@@ -188,7 +186,6 @@ class Ch6_Purely_functional_state extends FunSuite {
 
     def simulateMachine(inputs: List[Input]): State[Machine, (Int, Int)] = { machine =>
 
-      //noinspection NameBooleanParameters
       def go(input: Input): State2[Machine] = machine =>
         (input, machine) match {
           case (Coin, Machine(true, candies, coins)) if candies > 0 =>
