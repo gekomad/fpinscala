@@ -166,9 +166,5 @@ class Ch11_Monads extends FunSuite {
     }
 
     assert(a.map(Id(1))(_ + 1) == Id(2))
-
-
   }
-
-
 }
