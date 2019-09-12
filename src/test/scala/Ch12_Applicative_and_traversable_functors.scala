@@ -1,5 +1,4 @@
-import org.scalatest.FunSuite
-
+import org.scalatest.funsuite.AnyFunSuite
 
 trait Applicative[F[_]] extends Functor[F] {
   //two methods are going to use the default definition, and two (unit and one among map2/apply) need to be overridden
@@ -77,7 +76,7 @@ trait Traverse[F[_]] extends Functor[F] {
   def sequence[G[_] : Applicative, A](fga: F[G[A]]): G[F[A]] = traverse(fga)(ga => ga)
 }
 
-class Ch12_Applicative_and_traversable_functors extends FunSuite {
+class Ch12_Applicative_and_traversable_functors extends AnyFunSuite {
 
   test("EXERCISE 12.3") {
     val app = new Applicative[Option] {

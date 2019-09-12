@@ -2,9 +2,10 @@ package ch7
 
 import java.util.concurrent._
 
-import org.scalatest.FunSuite
-
+import org.scalatest.funsuite.AnyFunSuite
 import State._
+
+import scala.annotation.tailrec
 
 final case class State[S, +A](run: S => (A, S)) {
 
@@ -32,6 +33,7 @@ object State {
   // up a list in reverse order, then reverse it at the end.
   // (We could also use a collection.mutable.ListBuffer internally.)
   def sequence[S, A](sas: List[State[S, A]]): State[S, List[A]] = {
+    @tailrec
     def go(s: S, actions: List[State[S, A]], acc: List[A]): (List[A], S) =
       actions match {
         case Nil => (acc.reverse, s)
@@ -44,7 +46,7 @@ object State {
   }
 }
 
-class Ch7_Purely_functional_parallelism extends FunSuite {
+class Ch7_Purely_functional_parallelism extends AnyFunSuite {
 
   //EXERCISE 7.2 Par
   type Par[A] = ExecutorService => Future[A]

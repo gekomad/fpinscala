@@ -1,6 +1,6 @@
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
-class Ch4_Handling_errors_without_exceptions extends FunSuite {
+class Ch4_Handling_errors_without_exceptions extends AnyFunSuite {
 
   object MyOption {
 

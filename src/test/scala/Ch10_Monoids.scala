@@ -1,4 +1,4 @@
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
 trait Monoid[A] {
   def op(a1: A, a2: A): A
@@ -8,7 +8,7 @@ trait Monoid[A] {
 
 import Monoid._
 
-class Ch10_Monoids extends FunSuite {
+class Ch10_Monoids extends AnyFunSuite {
 
   //EXERCISE 10.5 foldMap
   def foldMap[A, B](as: List[A], m: Monoid[B])(f: A => B): B = as.foldLeft(m.zero)((a, b) => m.op(a, f(b)))

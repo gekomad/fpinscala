@@ -1,6 +1,6 @@
 package ch8
 import ch6.{RNG, SimpleRNG}
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 import ch7._
 import ch5._
 import MyStream._
@@ -94,7 +94,7 @@ case class Gen[A](sample: State[RNG, A]) {
 
 }
 
-class Ch8_Property_based_testing extends FunSuite {
+class Ch8_Property_based_testing extends AnyFunSuite {
 
   import Prop._
 

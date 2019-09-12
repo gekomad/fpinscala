@@ -1,4 +1,4 @@
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
 object IOMonad {
 
@@ -65,7 +65,7 @@ object Main extends App {
 
 }
 
-class Ch13_External_effects_and_IO extends FunSuite {
+class Ch13_External_effects_and_IO extends AnyFunSuite {
 
   test("Trampolining") {
 

@@ -1,13 +1,12 @@
-import org.scalatest.FunSuite
-
 import scala.language.implicitConversions
 import ch8._
 import ch8.Prop.Prop
 import ch8.Prop._
+import org.scalatest.funsuite.AnyFunSuite
 
 import scala.util.matching.Regex
 
-class Ch9_Parser_combinators extends FunSuite {
+class Ch9_Parser_combinators extends AnyFunSuite {
 
   trait Parsers[ParseError, Parser[+ _]] {
     self =>

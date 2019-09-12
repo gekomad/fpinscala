@@ -1,4 +1,4 @@
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
 trait Functor[F[_]] {
   def map[A, B](fa: F[A])(f: A => B): F[B]
@@ -75,7 +75,7 @@ object MyMonad {
 
 import MyMonad._
 
-class Ch11_Monads extends FunSuite {
+class Ch11_Monads extends AnyFunSuite {
   test("EXERCISE 11.1 Monad[List]") {
 
     //listMonad

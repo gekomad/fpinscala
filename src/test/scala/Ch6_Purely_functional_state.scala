@@ -1,6 +1,6 @@
 package ch6
 
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
 trait RNG {
   def nextInt: (Int, RNG)
@@ -25,7 +25,7 @@ object SimpleRNG {
   }
 }
 
-class Ch6_Purely_functional_state extends FunSuite {
+class Ch6_Purely_functional_state extends AnyFunSuite {
 
   import SimpleRNG._
 

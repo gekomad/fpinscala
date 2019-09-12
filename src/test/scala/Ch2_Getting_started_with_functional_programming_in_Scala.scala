@@ -1,8 +1,8 @@
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
 import scala.annotation.tailrec
 
-class Ch2_Getting_started_with_functional_programming_in_Scala extends FunSuite {
+class Ch2_Getting_started_with_functional_programming_in_Scala extends AnyFunSuite {
 
   test("EXERCISE 2.1 fibonacci") {
 

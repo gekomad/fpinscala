@@ -1,8 +1,8 @@
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
 import scala.annotation.tailrec
 
-class Ch3_Functional_data_structures extends FunSuite {
+class Ch3_Functional_data_structures extends AnyFunSuite {
 
   object MyList {
 
@@ -90,6 +90,7 @@ class Ch3_Functional_data_structures extends FunSuite {
   }
 
   test("EXERCISE 3.4 drop") {
+    @tailrec
     def drop[A](n: Int, l: List[A]): List[A] = l match {
       case Nil => Nil
       case Cons(x, xs) => if (n == 0) Cons(x, xs) else drop(n - 1, xs)

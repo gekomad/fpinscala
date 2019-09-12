@@ -1,6 +1,6 @@
-import org.scalatest.FunSuite
+import org.scalatest.funsuite.AnyFunSuite
 
-object Ch14 {
+object Ch13 {
 
   sealed trait ST[S, A] {
     self =>
@@ -60,11 +60,11 @@ object Ch14 {
 
 }
 
-class Ch14_Local_effects_and_mutable_state extends FunSuite {
+class Ch14_Local_effects_and_mutable_state extends AnyFunSuite {
 
   test("runST") {
-    import Ch14._
-    import Ch14.ST._
+    import Ch13._
+    import Ch13.ST._
 
     val p = new RunnableST[(Int, Int)] {
       def apply[S]: ST[S, (Int, Int)] = for {
