@@ -7,7 +7,7 @@ object MyStream {
 
   object Stream {
     def cons[A](hd: => A, tl: => Stream[A]): Stream[A] = {
-      lazy val head: A = hd
+      lazy val head: A         = hd
       lazy val tail: Stream[A] = tl
       Cons(() => head, () => tail)
     }
@@ -23,38 +23,37 @@ object MyStream {
 
     def foldRight[B](z: => B)(f: (A, => B) => B): B = this match {
       case Cons(h, t) => f(h(), t().foldRight(z)(f))
-      case _ => z
+      case _          => z
     }
 
     @tailrec
     final def foldLeft[B](z: B)(f: (B, A) => B): B = this match {
       case Cons(h, t) => t().foldLeft(f(z, h()))(f)
-      case _ => z
+      case _          => z
     }
 
     //EXERCISE 5.1 Stream to List
     def toList: List[A] = this match {
-      case Empty => List.empty[A]
+      case Empty      => List.empty[A]
       case Cons(h, t) => h.apply() :: t.apply().toList
     }
 
     //EXERCISE 5.2 take
     def take(n: Int): Stream[A] = this match {
-      case Empty => Empty
+      case Empty       => Empty
       case _ if n == 0 => Empty
-      case Cons(h, t) => cons(h.apply(), t.apply().take(n - 1))
+      case Cons(h, t)  => cons(h.apply(), t.apply().take(n - 1))
     }
 
     //EXERCISE 5.2 drop
     def drop(n: Int): Stream[A] = this match {
-      case Empty => Empty
+      case Empty       => Empty
       case Cons(x, xs) => if (n == 0) Cons(x, xs) else xs.apply().drop(n - 1)
     }
 
     //EXERCISE 5.3 takeWhile
     def takeWhile(p: A => Boolean): Stream[A] = this match {
-      case Cons(h, t)
-        if p(h()) =>
+      case Cons(h, t) if p(h()) =>
         cons(h(), t().takeWhile(p))
       case _ =>
         Empty
@@ -62,16 +61,15 @@ object MyStream {
 
     //EXERCISE 5.4 forAll
     def forAll(p: A => Boolean): Boolean = this match {
-      case Empty => true
+      case Empty                => true
       case Cons(h, t) if p(h()) => t().forAll(p)
-      case _ => false
+      case _                    => false
     }
 
     def find(p: A => Boolean): Option[A] = this match {
-      case Empty => None
+      case Empty      => None
       case Cons(h, t) => if (p(h())) Some(h()) else t().find(p)
     }
-
 
     def zipWith[B, C](s2: Stream[B])(f: (A, B) => C): Stream[C] =
       unfold((this, s2)) {
@@ -112,7 +110,6 @@ import MyStream.Stream._
 
 class Ch5_Strictness_and_laziness extends AnyFunSuite {
 
-
   test("EXERCISE 5.1 Stream to List") {
     assert(cons(1, Empty).toList == List(1))
     assert(cons(1, cons(2, Empty)).toList == List(1, 2))
@@ -140,9 +137,20 @@ class Ch5_Strictness_and_laziness extends AnyFunSuite {
   }
 
   test("EXERCISE 5.5 takeWhile using foldRight") {
-    assert(cons(1, cons(2, Empty)).foldRight(Empty: Stream[Int])((a, b) => if (a < 2) cons(a, b) else Empty).toList == List(1))
-    assert(cons(1, cons(2, Empty)).foldRight(Empty: Stream[Int])((a, b) => if (a < 3) cons(a, b) else Empty).toList == List(1, 2))
-    assert(cons(5, cons(2, Empty)).foldRight(Empty: Stream[Int])((a, b) => if (a < 3) cons(a, b) else Empty).toList == Nil)
+    assert(
+      cons(1, cons(2, Empty)).foldRight(Empty: Stream[Int])((a, b) => if (a < 2) cons(a, b) else Empty).toList == List(
+        1
+      )
+    )
+    assert(
+      cons(1, cons(2, Empty)).foldRight(Empty: Stream[Int])((a, b) => if (a < 3) cons(a, b) else Empty).toList == List(
+        1,
+        2
+      )
+    )
+    assert(
+      cons(5, cons(2, Empty)).foldRight(Empty: Stream[Int])((a, b) => if (a < 3) cons(a, b) else Empty).toList == Nil
+    )
   }
 
   test("EXERCISE 5.7 map filter append flatMap using foldRight") {
@@ -152,7 +160,11 @@ class Ch5_Strictness_and_laziness extends AnyFunSuite {
     assert(map(cons(1, cons(2, Empty)), Empty: Stream[Int], (a: Int) => a + 100).toList == List(101, 102))
 
     //filter
-    assert(cons(1, cons(3, cons(2, Empty))).foldRight(Empty: Stream[Int])((a, b) => if (a < 3) cons(a, b) else b).toList == List(1, 2))
+    assert(
+      cons(1, cons(3, cons(2, Empty)))
+        .foldRight(Empty: Stream[Int])((a, b) => if (a < 3) cons(a, b) else b)
+        .toList == List(1, 2)
+    )
 
     //append
     def append[A](l1: Stream[A], l2: Stream[A]): Stream[A] = l1.foldRight(l2)((a, b) => cons(a, b))
@@ -160,9 +172,12 @@ class Ch5_Strictness_and_laziness extends AnyFunSuite {
     assert(append(cons(1, cons(3, cons(2, Empty))), cons(-1, cons(-2, Empty))).toList == List(1, 3, 2, -1, -2))
 
     //flatMap
-    def flatMap[A, B](l1: Stream[A], z: Stream[B], f: A => Stream[B]): Stream[B] = l1.foldRight(z)((a, b) => append(f(a), b))
+    def flatMap[A, B](l1: Stream[A], z: Stream[B], f: A => Stream[B]): Stream[B] =
+      l1.foldRight(z)((a, b) => append(f(a), b))
 
-    assert(flatMap(cons(1, cons(2, Empty)), Empty: Stream[Int], (a: Int) => cons(a + 100, Empty)).toList == List(101, 102))
+    assert(
+      flatMap(cons(1, cons(2, Empty)), Empty: Stream[Int], (a: Int) => cons(a + 100, Empty)).toList == List(101, 102)
+    )
 
   }
 
@@ -229,7 +244,7 @@ class Ch5_Strictness_and_laziness extends AnyFunSuite {
 
     def map[A, B](l1: Stream[A], f: A => B): Stream[B] = unfold(l1) {
       case Cons(h, t) => Some(f(h()), t())
-      case _ => None
+      case _          => None
     }
 
     assert(map(cons(1, cons(2, Empty)), (a: Int) => a + 100).toList == List(101, 102))

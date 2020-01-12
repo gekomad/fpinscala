@@ -9,9 +9,9 @@ trait RNG {
 case class SimpleRNG(seed: Long) extends RNG {
 
   def nextInt: (Int, RNG) = {
-    val newSeed: Long = (seed * 0x5DEECE66DL + 0xBL) & 0xFFFFFFFFFFFFL
+    val newSeed: Long      = (seed * 0x5DEECE66DL + 0xBL) & 0xFFFFFFFFFFFFL
     val nextRNG: SimpleRNG = SimpleRNG(newSeed)
-    val n: Int = (newSeed >>> 16).toInt
+    val n: Int             = (newSeed >>> 16).toInt
     (n, nextRNG)
   }
 
@@ -39,7 +39,7 @@ class Ch6_Purely_functional_state extends AnyFunSuite {
   type Rand[+A] = RNG => (A, RNG)
 
   def map[A, B](s: Rand[A])(f: A => B): Rand[B] = rng => {
-    val (a, rng2) = s(rng)
+    val (a, rng2)   = s(rng)
     val o: (B, RNG) = (f(a), rng2)
     o
   }
@@ -62,19 +62,19 @@ class Ch6_Purely_functional_state extends AnyFunSuite {
   test("EXERCISE 6.3 pairs") {
 
     def intDouble(rng: RNG): ((Int, Double), RNG) = {
-      val (i, r) = nonNegativeInt(rng)
+      val (i, r)  = nonNegativeInt(rng)
       val (d, rn) = nonNegativeInt(r)
       ((i, d), rn)
     }
 
     def doubleInt(rng: RNG): ((Double, Int), RNG) = {
-      val (d, r) = nonNegativeInt(rng)
+      val (d, r)  = nonNegativeInt(rng)
       val (i, rn) = nonNegativeInt(r)
       ((i, d), rn)
     }
 
     def double3(rng: RNG): ((Double, Double, Double), RNG) = {
-      val (d, r) = nonNegativeInt(rng)
+      val (d, r)   = nonNegativeInt(rng)
       val (d1, r1) = nonNegativeInt(r)
       val (d2, r2) = nonNegativeInt(r1)
       ((d, d1, d2), r2)
@@ -91,7 +91,8 @@ class Ch6_Purely_functional_state extends AnyFunSuite {
     def ints(count: Int)(rng: RNG): (List[Int], RNG) = {
 
       def go(count: Int)(rng: RNG): (List[Int], RNG) = {
-        if (count == 0) (Nil, rng) else {
+        if (count == 0) (Nil, rng)
+        else {
           val (i, r) = nonNegativeInt(rng)
           val (a, b) = go(count - 1)(r)
           (i :: a, b)
@@ -123,9 +124,9 @@ class Ch6_Purely_functional_state extends AnyFunSuite {
   test("EXERCISE 6.6 map2") {
 
     def map2[A, B, C](ra: Rand[A], rb: Rand[B])(f: (A, B) => C): Rand[C] = (rng: RNG) => {
-      val (a, r) = ra(rng)
+      val (a, r)  = ra(rng)
       val (b, r2) = rb(r)
-      val c: C = f(a, b)
+      val c: C    = f(a, b)
       (c, r2)
     }
 
@@ -133,7 +134,6 @@ class Ch6_Purely_functional_state extends AnyFunSuite {
     val int2: Rand[Int] = (a: RNG) => a.nextInt
     // A :Int B: Int C: Int
     assert(map2(int1, int2)((a: Int, b: Int) => a + b)(SimpleRNG(42))._1 == -1265320244)
-
 
     val double1: Rand[Double] = (a: RNG) => {
       val (i, r) = a.nextInt
@@ -165,9 +165,10 @@ class Ch6_Purely_functional_state extends AnyFunSuite {
 
     val int1: Rand[Int] = (a: RNG) => a.nextInt
 
-    val int2: Int => Rand[Double] = (x: Int) => (a: RNG) => {
-      val (i, r) = a.nextInt
-      ((i + x).toDouble, r)
+    val int2: Int => Rand[Double] = (x: Int) =>
+      (a: RNG) => {
+        val (i, r) = a.nextInt
+        ((i + x).toDouble, r)
     }
 
     assert(flatMap(int1)(int2)(SimpleRNG(42))._1 == -1.265320244E9)
@@ -182,29 +183,28 @@ class Ch6_Purely_functional_state extends AnyFunSuite {
     final case class Machine(locked: Boolean, candies: Int, coins: Int)
 
     type State[+M, I] = Machine => (M, I)
-    type State2[+M] = Machine => M
+    type State2[+M]   = Machine => M
 
     def simulateMachine(inputs: List[Input]): State[Machine, (Int, Int)] = { machine =>
-
-      def go(input: Input): State2[Machine] = machine =>
-        (input, machine) match {
-          case (Coin, Machine(true, candies, coins)) if candies > 0 =>
-            println("1 Inserting a coin into a locked machine will cause it to unlock if there’s any candy left.")
-            Machine(false, candies, coins + 1)
-          case (Turn, Machine(false, candies, coins)) =>
-            println("2 Turning the knob on an unlocked machine will cause it to dispense candy and become locked.")
-            Machine(true, candies - 1, coins)
-          case (Turn, m@Machine(true, _, _)) =>
-            println("3 Turning the knob on a locked machine does nothing.")
-            m
-          case (Coin, m@Machine(false, _, _)) =>
-            println("4 Inserting a coin into an unlocked machine does nothing.")
-            m
-          case (_, m@Machine(_, 0, _)) =>
-            println("5 A machine that’s out of candy ignores all inputs.")
-            m
+      def go(input: Input): State2[Machine] =
+        machine =>
+          (input, machine) match {
+            case (Coin, Machine(true, candies, coins)) if candies > 0 =>
+              println("1 Inserting a coin into a locked machine will cause it to unlock if there’s any candy left.")
+              Machine(false, candies, coins + 1)
+            case (Turn, Machine(false, candies, coins)) =>
+              println("2 Turning the knob on an unlocked machine will cause it to dispense candy and become locked.")
+              Machine(true, candies - 1, coins)
+            case (Turn, m @ Machine(true, _, _)) =>
+              println("3 Turning the knob on a locked machine does nothing.")
+              m
+            case (Coin, m @ Machine(false, _, _)) =>
+              println("4 Inserting a coin into an unlocked machine does nothing.")
+              m
+            case (_, m @ Machine(_, 0, _)) =>
+              println("5 A machine that’s out of candy ignores all inputs.")
+              m
         }
-
 
       inputs.foldLeft((machine, (machine.coins, machine.candies)))((m, i) => {
         val o = go(i)(m._1)

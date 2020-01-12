@@ -69,7 +69,7 @@ class Ch9_Parser_combinators extends AnyFunSuite {
     def map2Bis[A, B, C](p: Parser[A], p2: => Parser[B])(f: (A, B) => C): Parser[C] = {
       val i: Parser[(A, B)] = product(p, p2)
       val ff: ((A, B)) => C = f.tupled
-      val ii: Parser[C] = map(i)(ff)
+      val ii: Parser[C]     = map(i)(ff)
       ii
     }
 
@@ -83,23 +83,23 @@ class Ch9_Parser_combinators extends AnyFunSuite {
       map2(p, x)(f)
     }
 
-    trait Parsers[ParseError, Parser[+ _]] {
-      self =>
-      def or[A](s1: Parser[A], s2: Parser[A]): Parser[A]
-
-      implicit def string(s: String): Parser[String]
-
-      implicit def operators[A](p: Parser[A]): ParserOps[A] = ParserOps[A](p)
-
-      implicit def asStringParser[A](a: A)(implicit f: A => Parser[String]): ParserOps[String] = ParserOps(f(a))
-
-      case class ParserOps[A](p: Parser[A]) {
-        def |[B >: A](p2: Parser[B]): Parser[B] = self.or(p, p2)
-
-        def or[B >: A](p2: => Parser[B]): Parser[B] = self.or(p, p2)
-      }
-
-    }
+//    trait Parsers[ParseError, Parser[+ _]] {
+//      self =>
+//      def or[A](s1: Parser[A], s2: Parser[A]): Parser[A]
+//
+//      implicit def string(s: String): Parser[String]
+//
+//      implicit def operators[A](p: Parser[A]): ParserOps[A] = ParserOps[A](p)
+//
+//      implicit def asStringParser[A](a: A)(implicit f: A => Parser[String]): ParserOps[String] = ParserOps(f(a))
+//
+//      case class ParserOps[A](p: Parser[A]) {
+//        def |[B >: A](p2: Parser[B]): Parser[B] = self.or(p, p2)
+//
+//        def or[B >: A](p2: => Parser[B]): Parser[B] = self.or(p, p2)
+//      }
+//
+//    }
 
     case class ParserOps[A](p: Parser[A]) {
       def |[B >: A](p2: Parser[B]): Parser[B] = self.or(p, p2)

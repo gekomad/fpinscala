@@ -31,8 +31,8 @@ class Ch10_Monoids extends AnyFunSuite {
       case 1 => m.op(m.zero, f(v(0)))
       case _ =>
         val (a, b) = v.splitAt(v.length / 2)
-        val l: B = foldMapV(a, m)(f)
-        val r: B = foldMapV(b, m)(f)
+        val l: B   = foldMapV(a, m)(f)
+        val r: B   = foldMapV(b, m)(f)
         m.op(l, r)
     }
 
@@ -49,7 +49,7 @@ class Ch10_Monoids extends AnyFunSuite {
       case 0 => Future.successful(m.zero)
       case 1 => Future.successful(m.op(m.zero, f(v(0))))
       case _ =>
-        val (a, b) = v.splitAt(v.length / 2)
+        val (a, b)       = v.splitAt(v.length / 2)
         val l: Future[B] = parFoldMap(a, m)(f)
         val r: Future[B] = parFoldMap(b, m)(f)
 
@@ -101,7 +101,6 @@ object Monoid {
 
     override def zero: Int = 1
   }
-
 
   val booleanOr: Monoid[Boolean] = new Monoid[Boolean] {
     override def op(a1: Boolean, a2: Boolean): Boolean = a1 || a2
@@ -198,8 +197,9 @@ object StringSpecification extends Properties("Monoid") {
     optionInt.op(optionInt.zero, a) == optionInt.op(a, optionInt.zero)
   }
 
-  property("[Option[Int]] scalaCheck: option associativityLaw") = forAll { (x: Option[Int], y: Option[Int], z: Option[Int]) =>
-    optionInt.op(optionInt.op(x, y), z) == optionInt.op(x, optionInt.op(y, z))
+  property("[Option[Int]] scalaCheck: option associativityLaw") = forAll {
+    (x: Option[Int], y: Option[Int], z: Option[Int]) =>
+      optionInt.op(optionInt.op(x, y), z) == optionInt.op(x, optionInt.op(y, z))
   }
 
   //endoMonoid

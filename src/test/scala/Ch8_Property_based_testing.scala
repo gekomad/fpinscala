@@ -1,4 +1,5 @@
 package ch8
+
 import ch6.{RNG, SimpleRNG}
 import org.scalatest.funsuite.AnyFunSuite
 import ch7._
@@ -6,7 +7,7 @@ import ch5._
 import MyStream._
 
 object Prop {
-  type FailedCase = String
+  type FailedCase   = String
   type SuccessCount = Int
 
   def unit[A](a: => A): Gen[A] = Gen(State.unit(a))
@@ -26,24 +27,21 @@ object Prop {
   type TestCases = Int
 
   case class Prop(run: (TestCases, RNG) => Result) {
-    def &&(p: Prop) = Prop {
-      (max, n) =>
-        run(max, n) match {
-          case Passed => p.run(max, n)
-          case x => x
-        }
+    def &&(p: Prop) = Prop { (max, n) =>
+      run(max, n) match {
+        case Passed => p.run(max, n)
+        case x      => x
+      }
 
     }
 
-    def ||(p: Prop) = Prop {
-      (max, n) =>
-        run(max, n) match {
-          // In case of failure, run the other prop.
-          case Falsified(_, _) =>
-            p.run(max, n)
-          case
-            x => x
-        }
+    def ||(p: Prop) = Prop { (max, n) =>
+      run(max, n) match {
+        // In case of failure, run the other prop.
+        case Falsified(_, _) =>
+          p.run(max, n)
+        case x => x
+      }
     }
 
   }
@@ -61,16 +59,21 @@ object Prop {
   }
 
   def forAll[A](as: Gen[A])(f: A => Boolean): Prop = {
-    Prop {
-      (n, rng) =>
-        randomStream(as)(rng).zip(from(0)).take(n).map {
-          case (a, i) => try {
-            if (f(a)) Passed else Falsified(a.toString, i)
-          } catch {
-            case e: Exception =>
-              Falsified(buildMsg(a, e), i)
-          }
-        }.find(_.isFalsified).getOrElse(Passed)
+    Prop { (n, rng) =>
+      randomStream(as)(rng)
+        .zip(from(0))
+        .take(n)
+        .map {
+          case (a, i) =>
+            try {
+              if (f(a)) Passed else Falsified(a.toString, i)
+            } catch {
+              case e: Exception =>
+                Falsified(buildMsg(a, e), i)
+            }
+        }
+        .find(_.isFalsified)
+        .getOrElse(Passed)
     }
   }
 
@@ -106,9 +109,13 @@ class Ch8_Property_based_testing extends AnyFunSuite {
   test("EXERCISE 8.5") {
 
     {
-      assert(unit(42).sample.run(new RNG {
-        def nextInt: (Int, RNG) = (???, ???)
-      })._1 == 42)
+      assert(
+        unit(42).sample
+          .run(new RNG {
+            def nextInt: (Int, RNG) = (???, ???)
+          })
+          ._1 == 42
+      )
     }
 
     {
@@ -126,15 +133,16 @@ class Ch8_Property_based_testing extends AnyFunSuite {
 
   test("Generate Gen[(Int,Int)]") {
     val c: Gen[Int] = choose(0, 100)
-    val p = c.sample.run(SimpleRNG(42))
-    val p2 = c.sample.run(p._2)
+    val p           = c.sample.run(SimpleRNG(42))
+    val p2          = c.sample.run(p._2)
     assert((p._1, p2._1) == (53, 50))
   }
 
   test("Gen[Option[A]] from a Gen[A]") {
     val c: Gen[Int] = choose(0, 100)
 
-    val ps = c.sample.map2(State(_.nextInt match { case (i, r) => (i % 2 == 0, r) }))((x, b) => if (b) Some(x) else None)
+    val ps =
+      c.sample.map2(State(_.nextInt match { case (i, r) => (i % 2 == 0, r) }))((x, b) => if (b) Some(x) else None)
 
     assert(ps.run(SimpleRNG(42))._1.isEmpty)
     assert(ps.run(SimpleRNG(10))._1.contains(89))

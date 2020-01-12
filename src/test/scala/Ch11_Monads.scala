@@ -7,11 +7,10 @@ trait Functor[F[_]] {
     (map(fab)(_._1), map(fab)(_._2))
 
   def codistribute[A, B](e: Either[F[A], F[B]]): F[Either[A, B]] = e match {
-    case Left(fa) => map(fa)(Left(_))
+    case Left(fa)  => map(fa)(Left(_))
     case Right(fb) => map(fb)(Right(_))
   }
 }
-
 
 trait Monad[F[_]] extends Functor[F] {
   def unit[A](a: => A): F[A]
@@ -43,18 +42,24 @@ trait Monad[F[_]] extends Functor[F] {
   }
 
   // EXERCISE 11.4
-  def replicateM[A](n: Int, ma: F[A]): F[List[A]] = map(ma) { m => List.fill(n)(m) }
+  def replicateM[A](n: Int, ma: F[A]): F[List[A]] = map(ma) { m =>
+    List.fill(n)(m)
+  }
 
   // EXERCISE 11.6
   def filterM[A](ms: List[A])(f: A => F[Boolean]): F[List[A]] = {
     ms.foldRight(unit(List.empty[A])) { (cur, acc) =>
-      flatMap(acc) { macc => map(f(cur)) { b => if (b) cur :: macc else macc } }
+      flatMap(acc) { macc =>
+        map(f(cur)) { b =>
+          if (b) cur :: macc else macc
+        }
+      }
     }
   }
 
   // EXERCISE 11.7
   def compose[A, B, C](f: A => F[B], g: B => F[C]): A => F[C] =
-  //aa => flatMap(unit(aa)) { a => flatMap(f(a))(g) } --> by identity laws: flatMap(unit(aa)) == aa
+    //aa => flatMap(unit(aa)) { a => flatMap(f(a))(g) } --> by identity laws: flatMap(unit(aa)) == aa
     aa => flatMap(f(aa))(g)
 }
 
@@ -94,7 +99,7 @@ class Ch11_Monads extends AnyFunSuite {
   }
 
   test("EXERCISE 11.3 sequence and traverse") {
-    val l: List[Option[Int]] = List(optionMonad.unit(1), optionMonad.unit(2))
+    val l: List[Option[Int]]     = List(optionMonad.unit(1), optionMonad.unit(2))
     val empty: List[Option[Int]] = List.empty[Option[Int]]
 
     assert(optionMonad.sequence(l) == Some(List(1, 2)))
